@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.DS_Store
+.env
+backend/app/db/*.db
+backend/*.log
+frontend/*.log
+.vercel/
+
+.vercel
