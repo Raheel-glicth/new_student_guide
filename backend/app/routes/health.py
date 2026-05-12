@@ -9,8 +9,10 @@ def health_check():
         {
             "status": "ok",
             "service": "ai-career-os-backend",
+            "version": current_app.config["APP_VERSION"],
+            "environment": current_app.config["APP_ENV"],
             "database": "ready",
+            "mentorProvider": current_app.config["MENTOR_PROVIDER"],
             "port": current_app.config["PORT"],
         }
     )
-

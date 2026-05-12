@@ -125,6 +125,15 @@ def fetch_recent_messages(app, limit=8):
 
 def generate_placeholder_reply(app, payload):
     user_message = payload.get("message", "").strip()
+    if len(user_message) > 1200:
+        return {
+            "reply": "That is a lot to process at once. Send the most important part in a shorter message and I will turn it into a next step.",
+            "source": "local-mentor-engine",
+            "actionItems": ["Shorten the question to one decision or blocker"],
+            "focusArea": "Input",
+            "conversation": fetch_recent_messages(app),
+        }
+
     profile = fetch_student_profile(app)
     dashboard = load_dashboard_state(app)
 

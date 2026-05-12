@@ -4,6 +4,7 @@ import RoadmapPreview from "../features/roadmap/RoadmapPreview";
 import ProgressPanel from "../features/progress/ProgressPanel";
 import MentorPanel from "../features/mentor/MentorPanel";
 import StatusCard from "../components/StatusCard";
+import LoadingSkeleton from "../components/LoadingSkeleton";
 import { askMentor, getHealth, getRoadmap, submitIntake, updateProgress } from "../services/api";
 
 const productSignals = [
@@ -267,26 +268,35 @@ function AppShell() {
             <p>Return each week, update tasks, ask the mentor, and watch ambiguity turn into visible career evidence.</p>
           </article>
         </section>
-        <QuestionnairePage
-          id="discovery"
-          onSubmit={handleIntakeSubmit}
-          submitting={pageState.submitting}
-          existingProfile={dashboard.profile}
-          recommendation={dashboard.recommendation}
-        />
-        <RoadmapPreview
-          id="roadmap"
-          dashboard={dashboard}
-          onTaskStatusChange={handleTaskStatusChange}
-          savingTaskKey={pageState.savingTaskKey}
-        />
-        <ProgressPanel dashboard={dashboard} />
-        <MentorPanel
-          dashboard={dashboard}
-          mentorState={mentorState}
-          onSendMessage={handleMentorMessage}
-          loading={pageState.mentorLoading}
-        />
+        {pageState.loading ? (
+          <>
+            <LoadingSkeleton title="Loading discovery workspace" />
+            <LoadingSkeleton title="Loading roadmap state" />
+          </>
+        ) : (
+          <>
+            <QuestionnairePage
+              id="discovery"
+              onSubmit={handleIntakeSubmit}
+              submitting={pageState.submitting}
+              existingProfile={dashboard.profile}
+              recommendation={dashboard.recommendation}
+            />
+            <RoadmapPreview
+              id="roadmap"
+              dashboard={dashboard}
+              onTaskStatusChange={handleTaskStatusChange}
+              savingTaskKey={pageState.savingTaskKey}
+            />
+            <ProgressPanel dashboard={dashboard} />
+            <MentorPanel
+              dashboard={dashboard}
+              mentorState={mentorState}
+              onSendMessage={handleMentorMessage}
+              loading={pageState.mentorLoading}
+            />
+          </>
+        )}
       </main>
     </div>
   );

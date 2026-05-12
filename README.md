@@ -13,6 +13,7 @@ Single-user MVP that helps students discover career paths, receive a personalize
 ```text
 frontend/   React app shell and feature folders
 backend/    Flask app factory, routes, services, and SQLite setup
+api/        Vercel serverless entrypoint that serves API and frontend build
 docs/       API contract notes
 ```
 
@@ -47,6 +48,29 @@ Frontend runs on `http://localhost:5173`.
 - `GET /api/roadmap`
 - `POST /api/progress`
 - `POST /api/mentor`
+
+## Production Notes
+
+This is intentionally scoped as a single-user MVP. The deployed Vercel version serves the React build and Flask API from one domain. SQLite is kept for local demo simplicity; real multi-user usage should move persistence to Postgres or Turso before collecting student data.
+
+The backend includes request IDs, basic security headers, lightweight rate limiting for write-heavy endpoints, and deterministic mentor responses. The frontend includes request timeouts, retry behavior for safe reads, loading skeletons, and an error boundary.
+
+## Quality Gates
+
+```powershell
+cd backend
+.venv\Scripts\python.exe -m unittest discover -s tests
+
+cd ..\frontend
+npm run build
+```
+
+## Engineering Docs
+
+- `docs/project-audit.md`
+- `docs/architecture-decisions.md`
+- `docs/testing-strategy.md`
+- `docs/interview-guide.md`
 
 ## Current Status
 

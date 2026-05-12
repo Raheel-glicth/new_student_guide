@@ -880,6 +880,63 @@ textarea:disabled {
   min-height: 220px;
 }
 
+.failure-panel {
+  max-width: 720px;
+  margin: 80px auto 0;
+}
+
+.failure-panel h1 {
+  margin: 0 0 12px;
+}
+
+.skeleton-panel {
+  display: grid;
+  min-height: 320px;
+  align-content: start;
+  gap: 18px;
+}
+
+.skeleton-line,
+.skeleton-grid span {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(18, 25, 34, 0.08);
+}
+
+.skeleton-line {
+  height: 14px;
+}
+
+.skeleton-line-wide {
+  width: min(100%, 520px);
+}
+
+.skeleton-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.skeleton-grid span {
+  height: 74px;
+}
+
+.skeleton-line::after,
+.skeleton-grid span::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  transform: translateX(-100%);
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
 @media (max-width: 1040px) {
   .hero {
     grid-template-columns: 1fr;
@@ -974,5 +1031,6 @@ textarea:disabled {
   *::after {
     scroll-behavior: auto !important;
     transition: none !important;
+    animation: none !important;
   }
 }

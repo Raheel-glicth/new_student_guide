@@ -77,4 +77,16 @@ def init_db(app):
             ON progress_entries (roadmap_id, task_key)
             """
         )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_roadmaps_profile_created
+            ON roadmaps (profile_id, created_at DESC)
+            """
+        )
+        connection.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_mentor_messages_created
+            ON mentor_messages (created_at DESC)
+            """
+        )
         connection.commit()
