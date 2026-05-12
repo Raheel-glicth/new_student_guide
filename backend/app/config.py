@@ -12,7 +12,10 @@ def _get_bool(name, default="false"):
 class Config:
     APP_NAME = "student-decisoom"
     APP_VERSION = os.getenv("APP_VERSION", "0.3.0")
-    APP_ENV = os.getenv("APP_ENV", os.getenv("FLASK_ENV", "development"))
+    APP_ENV = os.getenv(
+        "APP_ENV",
+        "production" if os.getenv("VERCEL") else os.getenv("FLASK_ENV", "development"),
+    )
     PORT = int(os.getenv("PORT", "5000"))
     MAX_CONTENT_LENGTH = int(os.getenv("MAX_CONTENT_LENGTH", str(128 * 1024)))
     DATABASE_PATH = os.getenv(
