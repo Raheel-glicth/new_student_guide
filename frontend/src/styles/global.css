@@ -483,9 +483,12 @@ textarea:disabled {
 
 .stepper {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
+  padding-bottom: 8px;
+  overflow-x: auto;
   margin-bottom: 18px;
+  scrollbar-width: thin;
 }
 
 .step-pill,
@@ -505,6 +508,7 @@ textarea:disabled {
 
 .step-pill {
   display: inline-flex;
+  flex: 0 0 auto;
   gap: 8px;
   align-items: center;
   padding: 9px 12px;
@@ -540,6 +544,36 @@ textarea:disabled {
 .mentor-form {
   display: grid;
   gap: 16px;
+}
+
+.decision-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 470px;
+  align-content: start;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(247, 252, 250, 0.84)),
+    #ffffff;
+}
+
+.decision-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  content: "";
+  background: linear-gradient(90deg, var(--teal), var(--cyan), var(--amber));
+}
+
+.decision-card-header {
+  max-width: 680px;
+  margin-bottom: 18px;
+}
+
+.decision-card-header h3 {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 1.45rem;
+  line-height: 1.15;
 }
 
 .step-card,
@@ -606,11 +640,16 @@ textarea:disabled {
 }
 
 .chip-grid,
+.selectable-list,
 .mini-chip-row,
 .status-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.selectable-list {
+  align-content: start;
 }
 
 .choice-chip,
@@ -632,7 +671,7 @@ textarea:disabled {
 }
 
 .question-block {
-  margin-top: 20px;
+  margin-top: 8px;
 }
 
 .option-grid,
@@ -641,6 +680,11 @@ textarea:disabled {
 .timeline-list {
   display: grid;
   gap: 12px;
+}
+
+.question-option-grid,
+.interest-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .option-card {
@@ -653,6 +697,11 @@ textarea:disabled {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.74);
   text-align: left;
+}
+
+.question-focus .option-card,
+.interest-option {
+  min-height: 122px;
 }
 
 .option-marker {
@@ -681,6 +730,11 @@ textarea:disabled {
     linear-gradient(135deg, rgba(0, 168, 143, 0.12), rgba(47, 183, 255, 0.11)),
     #ffffff;
   box-shadow: 0 14px 34px rgba(0, 168, 143, 0.14);
+}
+
+.interest-stage {
+  display: grid;
+  gap: 14px;
 }
 
 .option-card-active .option-marker {
@@ -976,7 +1030,9 @@ textarea:disabled {
 
   .signal-grid,
   .form-grid,
-  .metric-grid {
+  .metric-grid,
+  .question-option-grid,
+  .interest-grid {
     grid-template-columns: 1fr;
   }
 

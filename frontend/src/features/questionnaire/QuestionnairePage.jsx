@@ -6,8 +6,43 @@ import {
   questionnaireSteps,
 } from "../../data/questionnaire";
 
+const discoveryQuestions = questionnaireSteps.flatMap((step) =>
+  (step.questions || []).map((question) => ({
+    ...question,
+    phaseTitle: step.title,
+  })),
+);
+
+const discoveryDeck = [
+  {
+    id: "profile-basics",
+    kind: "profile",
+    title: "First, who are we guiding?",
+    description: "Keep this simple. The roadmap should feel personal, not like a generic quiz.",
+  },
+  {
+    id: "interest-fit",
+    kind: "interests",
+    title: "What naturally pulls your attention?",
+    description: "Pick the fields you would actually explore when no one is forcing you.",
+  },
+  ...discoveryQuestions.map((question) => ({
+    id: question.id,
+    kind: "question",
+    question,
+    title: question.label,
+    description: question.phaseTitle,
+  })),
+  {
+    id: "career-goal",
+    kind: "goal",
+    title: "What should this plan help you become?",
+    description: "One honest sentence is enough. Specific beats impressive.",
+  },
+];
+
 function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommendation }) {
-  const [stepIndex, setStepIndex] = useState(0);
+  const [deckIndex, setDeckIndex] = useState(0);
   const [form, setForm] = useState(initialIntakeForm);
   const [error, setError] = useState("");
 
@@ -32,8 +67,8 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
     }));
   }, [existingProfile]);
 
-  const currentStep = questionnaireSteps[stepIndex];
-  const isLastStep = stepIndex === questionnaireSteps.length - 1;
+  const currentCard = discoveryDeck[deckIndex];
+  const isLastCard = deckIndex === discoveryDeck.length - 1;
   const answeredCount = Object.values(form.answers).filter(Boolean).length;
   const totalAnswerCount = Object.keys(form.answers).length;
   const profileComplete =
@@ -45,8 +80,16 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
       (totalAnswerCount + 2)) *
       100,
   );
+  const currentAnswer =
+    currentCard.kind === "question" ? form.answers[currentCard.question.id] : "";
+  const phaseName =
+    currentCard.kind === "question" ? currentCard.description : "Student Signal";
 
-  function updateAnswer(questionId, value) {
+  function moveToNextCard() {
+    setDeckIndex((current) => Math.min(current + 1, discoveryDeck.length - 1));
+  }
+
+  function updateAnswer(questionId, value, shouldAdvance = false) {
     setForm((current) => ({
       ...current,
       answers: {
@@ -54,6 +97,11 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
         [questionId]: value,
       },
     }));
+    setError("");
+
+    if (shouldAdvance && deckIndex < discoveryDeck.length - 1) {
+      window.setTimeout(moveToNextCard, 140);
+    }
   }
 
   function toggleInterest(value) {
@@ -68,29 +116,25 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
     });
   }
 
-  function validateStep() {
-    if (currentStep.id === "profile") {
+  function validateCurrentCard() {
+    if (currentCard.kind === "profile") {
       if (!form.fullName.trim()) {
         return "Enter the student name.";
       }
       if (!form.educationLevel) {
         return "Choose the current education level.";
       }
-      if (form.interestAreas.length === 0) {
-        return "Select at least one interest area.";
-      }
     }
 
-    if (currentStep.questions) {
-      const unanswered = currentStep.questions.find(
-        (question) => !form.answers[question.id],
-      );
-      if (unanswered) {
-        return `Answer: ${unanswered.label}`;
-      }
+    if (currentCard.kind === "interests" && form.interestAreas.length === 0) {
+      return "Select at least one interest area.";
     }
 
-    if (isLastStep && !form.goals.trim()) {
+    if (currentCard.kind === "question" && !form.answers[currentCard.question.id]) {
+      return "Choose the option that feels closest.";
+    }
+
+    if (currentCard.kind === "goal" && !form.goals.trim()) {
       return "Write one short career goal so the roadmap has direction.";
     }
 
@@ -98,24 +142,24 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
   }
 
   function handleNextStep() {
-    const validationError = validateStep();
+    const validationError = validateCurrentCard();
     if (validationError) {
       setError(validationError);
       return;
     }
 
     setError("");
-    setStepIndex((current) => Math.min(current + 1, questionnaireSteps.length - 1));
+    moveToNextCard();
   }
 
   function handlePreviousStep() {
     setError("");
-    setStepIndex((current) => Math.max(current - 1, 0));
+    setDeckIndex((current) => Math.max(current - 1, 0));
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const validationError = validateStep();
+    const validationError = validateCurrentCard();
     if (validationError) {
       setError(validationError);
       return;
@@ -140,25 +184,29 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
       </div>
 
       <div className="stepper">
-        {questionnaireSteps.map((step, index) => (
+        {discoveryDeck.map((card, index) => (
           <button
-            key={step.id}
+            key={card.id}
             type="button"
-            className={`step-pill ${index === stepIndex ? "step-pill-active" : ""}`}
-            onClick={() => setStepIndex(index)}
+            className={`step-pill ${index === deckIndex ? "step-pill-active" : ""}`}
+            onClick={() => setDeckIndex(index)}
+            aria-label={`Go to discovery card ${index + 1}: ${card.title}`}
           >
             <span>{index + 1}</span>
-            {step.title}
+            {card.kind === "question" ? card.question.phaseTitle : card.title}
           </button>
         ))}
       </div>
 
       <form className="questionnaire-form" onSubmit={handleSubmit}>
-        <div className="step-card">
-          <p className="step-heading">{currentStep.title}</p>
-          <p className="muted-text">{currentStep.description}</p>
+        <div className="step-card decision-card">
+          <div className="decision-card-header">
+            <p className="panel-label">{phaseName}</p>
+            <h3>{currentCard.title}</h3>
+            <p className="muted-text">{currentCard.description}</p>
+          </div>
 
-          {currentStep.id === "profile" && (
+          {currentCard.kind === "profile" && (
             <div className="form-grid">
               <label className="field-block">
                 <span>Student name</span>
@@ -175,38 +223,23 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
                 />
               </label>
 
-              <label className="field-block">
+              <div className="field-block">
                 <span>Education level</span>
-                <select
-                  className="text-input"
-                  value={form.educationLevel}
-                  onChange={(event) =>
-                    setForm((current) => ({
-                      ...current,
-                      educationLevel: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="">Select one</option>
+                <div className="selectable-list">
                   {educationOptions.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div className="field-block field-block-full">
-                <span>Interest areas</span>
-                <div className="chip-grid">
-                  {interestOptions.map((option) => (
                     <button
                       key={option}
                       type="button"
                       className={`choice-chip ${
-                        form.interestAreas.includes(option) ? "choice-chip-active" : ""
+                        form.educationLevel === option ? "choice-chip-active" : ""
                       }`}
-                      onClick={() => toggleInterest(option)}
+                      onClick={() => {
+                        setError("");
+                        setForm((current) => ({
+                          ...current,
+                          educationLevel: option,
+                        }));
+                      }}
                     >
                       {option}
                     </button>
@@ -216,29 +249,56 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
             </div>
           )}
 
-          {currentStep.questions?.map((question) => (
-            <div key={question.id} className="question-block">
-              <p className="question-title">{question.label}</p>
-              <div className="option-grid">
-                {question.options.map((option) => (
+          {currentCard.kind === "interests" && (
+            <div className="interest-stage">
+              <div className="option-grid interest-grid">
+                {interestOptions.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    className={`option-card interest-option ${
+                      form.interestAreas.includes(option) ? "option-card-active" : ""
+                      }`}
+                    onClick={() => {
+                      setError("");
+                      toggleInterest(option);
+                    }}
+                  >
+                      <span className="option-marker" aria-hidden="true" />
+                    <strong>{option}</strong>
+                    <span>
+                      {form.interestAreas.includes(option)
+                        ? "Selected for your recommendation signal."
+                        : "Tap to include this in your career fit map."}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {currentCard.kind === "question" && (
+            <div className="question-block question-focus">
+              <div className="option-grid question-option-grid">
+                {currentCard.question.options.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     className={`option-card ${
-                      form.answers[question.id] === option.value ? "option-card-active" : ""
-                      }`}
-                      onClick={() => updateAnswer(question.id, option.value)}
-                    >
-                      <span className="option-marker" aria-hidden="true" />
-                      <strong>{option.label}</strong>
-                      <span>{option.description}</span>
-                    </button>
+                      currentAnswer === option.value ? "option-card-active" : ""
+                    }`}
+                    onClick={() => updateAnswer(currentCard.question.id, option.value, true)}
+                  >
+                    <span className="option-marker" aria-hidden="true" />
+                    <strong>{option.label}</strong>
+                    <span>{option.description}</span>
+                  </button>
                 ))}
               </div>
             </div>
-          ))}
+          )}
 
-          {isLastStep && (
+          {currentCard.kind === "goal" && (
             <label className="field-block field-block-full">
               <span>Career goal</span>
               <textarea
@@ -272,12 +332,12 @@ function QuestionnairePage({ id, onSubmit, submitting, existingProfile, recommen
             type="button"
             className="secondary-button"
             onClick={handlePreviousStep}
-            disabled={stepIndex === 0 || submitting}
+            disabled={deckIndex === 0 || submitting}
           >
             Back
           </button>
 
-          {!isLastStep ? (
+          {!isLastCard ? (
             <button
               type="button"
               className="primary-button"
